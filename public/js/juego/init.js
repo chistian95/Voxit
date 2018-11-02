@@ -32,6 +32,7 @@ var crearEscena = function() {
   }
 
   var meshes = {};
+  var mat_arr = ["aire", "grass", "piedra", "agua"];
 
   scene.socket.on('cargarMapa', function(mapa) {
     for(var x=0,lenX=mapa.length; x<lenX; x++) {
@@ -39,10 +40,7 @@ var crearEscena = function() {
         for(var y=0,lenY=mapa[x][z].length; y<lenY; y++) {
           var val = mapa[x][z][y];
           if(val > 0) {
-            var material = "piedra";
-            if(val == 2) {
-              material = "agua";
-            }
+            var material = mat_arr[val];
 
             var cubo;
             if(!meshes[material]) {

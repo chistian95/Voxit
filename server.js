@@ -52,12 +52,15 @@ for(var x=startX; x<startX+width; x++) {
     var zidx = Math.round(Math.abs((width + z % width) % width));
 
     if(y === floor || startY < y && y < startY + width) {
+      for(var ly = floor; ly < yidx; ly++) {
+        mapa[xidx][zidx][ly] = 2;
+      }
       mapa[xidx][zidx][yidx] = 1;
     }
 
     for(var y=floor; y<ceiling; y++) {
       if(y > floor && y <= alturaAgua && mapa[x][z][y] === 0)
-      mapa[x][z][y] = 2;
+      mapa[x][z][y] = 3;
     }
   }
 }
