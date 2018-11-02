@@ -5,22 +5,41 @@ var crearEscena = function() {
   var scene = new BABYLON.Scene(engine);
   scene.socket = io();
 
-  var camara = new BABYLON.ArcRotateCamera("Camara", 3* Math.PI / 4, Math.PI / 4, 4, new BABYLON.Vector3.Zero(), scene);
+  var camara = new BABYLON.ArcRotateCamera("Camara", 3* Math.PI / 4, Math.PI / 4, 4, new BABYLON.Vector3(25, 50, 25), scene);
   camara.attachControl(canvas, true);
 
+  var luz1 = new BABYLON.HemisphericLight("luz1", new BABYLON.Vector3(0,0.5,0), scene);
 
-  var luz1 = new BABYLON.HemisphericLight("luz1", new BABYLON.Vector3(0,1,0), scene);
-  var matBase = new BABYLON.StandardMaterial("basico", scene);
-  matBase.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
-  matBase.diffuseColor = new BABYLON.Color3(0.3, 0.7, 0.3);
+  var matAgua = new BABYLON.StandardMaterial("agua", scene);
+  matAgua.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+  matAgua.diffuseColor = new BABYLON.Color3(0.1, 0.45, 0.82);
 
-  for(var x=-5; x<5; x++) {
-    for(var z=-5; z<5; z++) {
-      var cubo = BABYLON.MeshBuilder.CreateBox("cubo", scene);
-      cubo.position = new BABYLON.Vector3(x,0,z);
-      cubo.material = matBase;
+  var matGrass = new BABYLON.StandardMaterial("grass", scene);
+  matGrass.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+  matGrass.diffuseColor = new BABYLON.Color3(0.3, 0.7, 0.3);
+
+  var matPiedra = new BABYLON.StandardMaterial("piedra", scene);
+  matPiedra.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+  matPiedra.diffuseColor = new BABYLON.Color3(0.6, 0.6, 0.6);
+
+  scene.socket.on('cargarMapa', function(mapa) {
+    for(var x=0,lenX=mapa.length; x<lenX; x++) {
+      for(var z=0,lenZ=mapa[x].length; z<lenZ; z++) {
+        for(var y=0,lenY=mapa[x][z].length; y<lenY; y++) {
+          var val = mapa[x][z][y];
+          if(val > 0) {
+            var cubo = BABYLON.MeshBuilder.CreateBox("c:"+x+";"+y+";"+z, scene);
+            cubo.position = new BABYLON.Vector3(x, y, z);
+            cubo.material = matPiedra;
+
+            if(val == 2) {
+              cubo.material = matAgua;
+            }
+          }
+        }
+      }
     }
-  }
+  });
 
   return scene;
 }
