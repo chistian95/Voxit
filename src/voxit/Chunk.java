@@ -8,14 +8,12 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import jme3tools.optimize.GeometryBatchFactory;
 
 public class Chunk {
-    private static final int ANCHO_CHUNK = 50;
+    private static final int ANCHO_CHUNK = 32;
     private static final float ESCALA_BLOQUES = 0.1f;
     
     public int[] coords;
@@ -58,8 +56,8 @@ public class Chunk {
     
     private void generarInfoChunk() {
         int floor = 0;
-        int ceiling = 30;
-        double divisor = 75.0;
+        int ceiling = 20;
+        double divisor = 60.0;
         int width = ANCHO_CHUNK;
         int alturaAgua = 5;
         

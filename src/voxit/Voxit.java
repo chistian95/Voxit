@@ -18,7 +18,7 @@ import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
 
 public class Voxit extends SimpleApplication {    
-    public static final int SEED = 0;
+    public static final int SEED = (int) (Math.random() * 1000);
     
     public Geometry[] bloquesBase;
     public OpenSimplexNoise noise;
@@ -100,8 +100,8 @@ public class Voxit extends SimpleApplication {
             @Override
             public void run() {
                 int y = 0;
-                for(int x=0; x<10; x++) {
-                    for(int z=0; z<10; z++) {
+                for(int x=0; x<20; x++) {
+                    for(int z=0; z<20; z++) {
                         new Chunk(x,y,z, app);
                     }
                 } 
