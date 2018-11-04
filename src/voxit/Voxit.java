@@ -51,6 +51,7 @@ public class Voxit extends SimpleApplication {
         sol.setDirection(dirSol.normalizeLocal());
         rootNode.addLight(sol);
         
+        /*
         FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
         fpp.setNumSamples(1);
         
@@ -68,6 +69,7 @@ public class Voxit extends SimpleApplication {
         fpp.addFilter(fog);
         
         viewPort.addProcessor(fpp);
+        */
         
         bloquesBase = new Geometry[4];
         float escala = 0.1f;
