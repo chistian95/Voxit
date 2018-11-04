@@ -1,2 +1,2 @@
 # Voxit
-Experimento voxel en JavaScript
+Experimento voxel en Java

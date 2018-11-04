@@ -1,0 +1,16 @@
+Material Aire : Common/MatDefs/Light/Lighting.j3md {
+     MaterialParameters {
+        Diffuse : 0 0 0 0
+        UseMaterialColors : true
+        Ambient : 0 0 0 0
+        Specular : 0 0 0 0
+        GlowColor : 0 0 0 0
+     }
+    AdditionalRenderState {
+      AlphaTestFalloff 0.0
+      Wireframe Off
+      DepthWrite Off
+      DepthTest Off
+      ColorWrite Off
+    }
+}
