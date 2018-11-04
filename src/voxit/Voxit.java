@@ -14,6 +14,8 @@ import com.jme3.scene.shape.Box;
 import com.jme3.shadow.DirectionalLightShadowFilter;
 import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.system.AppSettings;
+import com.jme3.texture.Texture;
+import com.jme3.util.SkyFactory;
 
 public class Voxit extends SimpleApplication {    
     public static final int SEED = 0;
@@ -51,7 +53,7 @@ public class Voxit extends SimpleApplication {
         sol.setDirection(dirSol.normalizeLocal());
         rootNode.addLight(sol);
         
-        /*
+        
         FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
         fpp.setNumSamples(1);
         
@@ -65,11 +67,17 @@ public class Voxit extends SimpleApplication {
         FogFilter fog = new FogFilter();
         fog.setFogColor(new ColorRGBA(0.8f, 0.8f, 0.8f, 1f));
         fog.setFogDistance(100);
-        fog.setFogDensity(2.5f);
+        fog.setFogDensity(1f);
         fpp.addFilter(fog);
         
         viewPort.addProcessor(fpp);
-        */
+        
+        Texture lado, arriba, abajo;
+        lado = assetManager.loadTexture("Textures/cielo_lado.png");
+        arriba = assetManager.loadTexture("Textures/cielo_arriba.png");
+        abajo = assetManager.loadTexture("Textures/cielo_abajo.png");
+        rootNode.attachChild(SkyFactory.createSky(assetManager, lado, lado, lado ,lado, arriba, abajo));
+        
         
         bloquesBase = new Geometry[4];
         float escala = 0.1f;
