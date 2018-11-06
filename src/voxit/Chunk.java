@@ -9,52 +9,38 @@ import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import jme3tools.optimize.GeometryBatchFactory;
 
 public class Chunk {
-    private static final int ANCHO_CHUNK = 32;
-    private static final float ESCALA_BLOQUES = 0.1f;
+    public static final int ANCHO_CHUNK = 32;
+    public static final float ESCALA_BLOQUES = 0.1f;
     
-    public int[] coords;
-    public int[][][] infoChunk;
-    public Geometry[][][] geomChunk;
+    private final int[] coords;
+    private int[][][] infoChunk;
+    private Geometry[][][] geomChunk;
     public Spatial spatBloques;
-    public Node bloques;
-    public OpenSimplexNoise noise;
-    public Node rootNode;
-    public Geometry[] bloquesBase;
+    private Node bloques;
     
-    private List<MeshBuffer> bufferMeshes = new ArrayList();
+    private final List<MeshBuffer> bufferMeshes = new ArrayList();
     
     Chunk(final int x, final int y, final int z, Voxit app) {
-        this.noise = app.noise;
         this.coords = new int[] {x,y,z};
-        this.rootNode = app.getRootNode();
-        this.bloquesBase = app.bloquesBase;
         
-        final Chunk self = this;
-        
-        System.out.println("Generación de chunk en: "+x+","+y+","+z);
-        generarInfoChunk();
-        System.out.println("Info terminada en: "+x+","+y+","+z);
-        generarGeomChunk(self.bloquesBase);
-        System.out.println("Geometria terminada en: "+x+","+y+","+z);
-        optimizarChunk();
-        spatBloques.setLocalTranslation(x*ANCHO_CHUNK*ESCALA_BLOQUES*2, y*ANCHO_CHUNK*ESCALA_BLOQUES*2, z*ANCHO_CHUNK*ESCALA_BLOQUES*2);
-        
-        app.enqueue(new Callable<Spatial>() {
-            @Override
-            public Spatial call() throws Exception {                
-                self.rootNode.attachChild(spatBloques);
-                System.out.println("Generación chunk terminada en: "+x+","+y+","+z);
-                return spatBloques;
-            } 
-        });
-        
+        generarChunk(app);          
     }
     
-    private void generarInfoChunk() {
+    private void generarChunk(Voxit app) {        
+        int x = coords[0];
+        int y = coords[1];
+        int z = coords[2];
+
+        generarInfoChunk(app);
+        generarGeomChunk(app.bloquesBase);
+        optimizarChunk();
+        spatBloques.setLocalTranslation(x*ANCHO_CHUNK*ESCALA_BLOQUES*2, y*ANCHO_CHUNK*ESCALA_BLOQUES*2, z*ANCHO_CHUNK*ESCALA_BLOQUES*2);                    
+    }
+    
+    private void generarInfoChunk(Voxit app) {
         int floor = 0;
         int ceiling = 20;
         double divisor = 60.0;
@@ -69,7 +55,7 @@ public class Chunk {
                 
         for(int x=startX; x<startX+width; x++) {
             for(int z=startZ; z<startZ+width; z++) {
-                double n = noise.eval(x / divisor, z / divisor);
+                double n = app.noise.eval(x / divisor, z / divisor);
                 double y = (n + 1) * (ceiling - floor)  / (1 + 1) + floor;
                 int xidx = (int) Math.floor(Math.abs((width + x % width) % width));
                 int yidx = (int) Math.floor(Math.abs((width + y % width) % width));
@@ -133,7 +119,6 @@ public class Chunk {
     };
     
     private void optimizarChunk() {
-        System.out.println("Optimizando chunk...");
         List<Integer> solidos = new ArrayList<>();
         solidos.add(2);
         solidos.add(3);
@@ -244,7 +229,10 @@ public class Chunk {
             }
         }
         
-        System.out.println("Creando batch");
-        spatBloques = GeometryBatchFactory.optimize(bloques, false);
+        spatBloques = GeometryBatchFactory.optimize(bloques, true);
+    }
+    
+    public int[] getCoords() {
+        return coords;
     }
 }

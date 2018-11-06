@@ -1,5 +1,6 @@
 package voxit;
 
+import com.jme3.app.DetailedProfilerState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
@@ -16,13 +17,19 @@ import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Voxit extends SimpleApplication {    
     public static final int SEED = (int) (Math.random() * 1000);
+    public static final int N_CHUNKS = 4;
     
     public Geometry[] bloquesBase;
     public OpenSimplexNoise noise;
-    public boolean chunksHechos = false;
+    public Thread hiloChunks;
+    public Set<ChunkStore> chunks = new HashSet();
     
     public static void main(String[] args) {
         Voxit app = new Voxit();
@@ -41,6 +48,9 @@ public class Voxit extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
+        stateManager.attach(new DetailedProfilerState());
+        
+        cam.setLocation(new Vector3f(1f, 2.75f, 1f));
         flyCam.setMoveSpeed(10);
         
         AmbientLight al = new AmbientLight();
@@ -52,8 +62,7 @@ public class Voxit extends SimpleApplication {
         sol.setColor(ColorRGBA.White.clone().multLocal(1));
         sol.setDirection(dirSol.normalizeLocal());
         rootNode.addLight(sol);
-        
-        
+                
         FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
         fpp.setNumSamples(1);
         
@@ -91,33 +100,75 @@ public class Voxit extends SimpleApplication {
         bloquesBase[3] = new Geometry("bloqueHierba", b);
         bloquesBase[3].setMaterial(assetManager.loadMaterial("Materials/Hierba.j3m")); 
         
-        noise = new OpenSimplexNoise(SEED);
-    }
-    
-    public void generarChunks() {
-        final Voxit app = this;
-        (new Thread() {
+        noise = new OpenSimplexNoise(SEED);      
+        
+        hiloChunks = new Thread(new Runnable() {
             @Override
             public void run() {
-                int y = 0;
-                for(int x=0; x<20; x++) {
-                    for(int z=0; z<20; z++) {
-                        new Chunk(x,y,z, app);
+                while(true) {
+                    Vector3f posCam = cam.getLocation();
+                    int x = (int) Math.floor(posCam.x / Chunk.ESCALA_BLOQUES / Chunk.ANCHO_CHUNK * 0.5);
+                    int y = (int) Math.floor(posCam.y / Chunk.ESCALA_BLOQUES / Chunk.ANCHO_CHUNK * 0.5);
+                    int z = (int) Math.floor(posCam.z / Chunk.ESCALA_BLOQUES / Chunk.ANCHO_CHUNK * 0.5);
+
+                    cargarChunks(x,y,z);
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(Voxit.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                } 
+                }    
             }
-        }).start();        
+        });
+        hiloChunks.start();
+    }
+    
+    private void cargarChunks(int x, int y, int z) {
+        y=0;
+        
+        for(int i=x-N_CHUNKS; i<=x+N_CHUNKS; i++) {
+            for(int j=z-N_CHUNKS; j<=z+N_CHUNKS; j++) {
+                String idChunk = i+":"+y+":"+j;
+                
+                ChunkStore cs = buscarChunk(idChunk);                
+                
+                if(cs == null) {
+                    cs = new ChunkStore(i,y,j, idChunk, this);
+                    guardarChunk(cs);
+                } else {
+                    cs.setVisible(true, this);
+                }
+            }
+        }        
+    }
+    
+    private void guardarChunk(ChunkStore cs) {
+        chunks.add(cs);
+    }
+    
+    private ChunkStore buscarChunk(String idChunk) {
+        for(ChunkStore cs : chunks) {
+            if(cs.idChunk.equals(idChunk)) {
+                return cs;
+            }
+        }
+        return null;
     }
 
     @Override
     public void simpleUpdate(float tpf) {
-        if(!chunksHechos) {
-            chunksHechos = true;
-            generarChunks();
-        }
     }
 
     @Override
     public void simpleRender(RenderManager rm) {
     }
+
+    @Override
+    public void stop() {
+        hiloChunks.stop();
+        super.stop(); 
+    }
+    
+    
 }
