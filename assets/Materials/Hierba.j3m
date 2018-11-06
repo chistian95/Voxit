@@ -2,7 +2,8 @@ Material Hierba : Common/MatDefs/Light/Lighting.j3md {
      MaterialParameters {
         Diffuse : 0.29803923 0.6862745 0.3137255 1.0
         UseMaterialColors : true
-        Ambient : 0.29803923 0.6862745 0.3137255 1.0
+        Ambient : 0 0 0 0
+        UseInstancing : false
      }
     AdditionalRenderState {
       Wireframe Off

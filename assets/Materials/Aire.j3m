@@ -5,6 +5,7 @@ Material Aire : Common/MatDefs/Light/Lighting.j3md {
         Ambient : 0 0 0 0
         Specular : 0 0 0 0
         GlowColor : 0 0 0 0
+        UseInstancing : false
      }
     AdditionalRenderState {
       AlphaTestFalloff 0.0

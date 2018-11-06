@@ -6,6 +6,7 @@ Material Agua : Common/MatDefs/Light/Lighting.j3md {
         Specular : 0 0 0 0
         GlowColor : 0 0 0 0
         VertexLighting : true
+        UseInstancing : false
      }
     AdditionalRenderState {
       FaceCull Back

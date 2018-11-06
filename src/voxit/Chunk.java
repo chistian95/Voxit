@@ -8,9 +8,10 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
-import jme3tools.optimize.GeometryBatchFactory;
 
 public class Chunk {
     public static final int ANCHO_CHUNK = 32;
@@ -19,13 +20,14 @@ public class Chunk {
     private final int[] coords;
     private int[][][] infoChunk;
     private Geometry[][][] geomChunk;
-    public Spatial spatBloques;
-    private Node bloques;
+    public Node spatBloques;
+    private String idChunk;
     
     private final List<MeshBuffer> bufferMeshes = new ArrayList();
     
     Chunk(final int x, final int y, final int z, String idChunk, final Voxit app) {
         this.coords = new int[] {x,y,z};
+        this.idChunk = idChunk;
         
         generarChunk(app);          
         spatBloques.setName(idChunk);
@@ -95,7 +97,6 @@ public class Chunk {
     
     private void generarGeomChunk(Geometry[] bloquesBase) {
         float escala = ESCALA_BLOQUES;
-        bloques = new Node("boxes"); 
         
         geomChunk = new Geometry[infoChunk.length][infoChunk[0].length][infoChunk[0][0].length];    
         
@@ -111,12 +112,9 @@ public class Chunk {
                     Geometry g = bloquesBase[val].clone();
                     g.move(x*escala*2, y*escala*2, z*escala*2);
                     geomChunk[x][y][z] = g;   
-                    bloques.attachChild(g);
                 }
             }
         }
-        
-        bloques.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
     }
     
     private static final short[] GEOMETRY_INDICES_DATA = {
@@ -130,10 +128,9 @@ public class Chunk {
     
     private void optimizarChunk() {
         List<Integer> solidos = new ArrayList<>();
+        Set<Geometry> listaBloques = new HashSet<>();
         solidos.add(2);
         solidos.add(3);
-        
-        bloques.detachAllChildren();
         
         for(int x=0,lenx=infoChunk.length; x<lenx; x++) {
             for(int y=0,leny=infoChunk[x].length; y<leny; y++) {
@@ -229,17 +226,26 @@ public class Chunk {
                     if(meshBuffer == null) {
                         Mesh m = g.getMesh().clone();                    
                         m.setBuffer(VertexBuffer.Type.Index, 3, BufferUtils.createShortBuffer(bufferFinal));
+                        m.updateCounts();
+                        m.updateBound();
+                        m.setStatic();
                         bufferMeshes.add(new MeshBuffer(bufferFinal, m));
                         meshBuffer = m;
                     }
                     
                     g.setMesh(meshBuffer);   
-                    bloques.attachChild(g);
+                    
+                    listaBloques.add(g);
                 }
             }
         }
         
-        spatBloques = GeometryBatchFactory.optimize(bloques, true);
+        spatBloques = new Node(idChunk);
+        List<Geometry> listaBatch = CustomOptimizer.makeBatches(listaBloques);
+        for(Geometry g : listaBatch) {
+            spatBloques.attachChild(g);
+        }
+        spatBloques.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
     }
     
     public int[] getCoords() {

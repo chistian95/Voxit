@@ -23,7 +23,7 @@ import java.util.Set;
 
 public class Voxit extends SimpleApplication {    
     public static final int SEED = (int) (Math.random() * 1000);
-    public static final int N_CHUNKS = 5;
+    public static final int N_CHUNKS = 10;
     
     public Geometry[] bloquesBase;
     public OpenSimplexNoise noise;
@@ -121,8 +121,8 @@ public class Voxit extends SimpleApplication {
     private void cargarChunks(int x, int y, int z) {
         y=0;
         
-        for(int i=x-N_CHUNKS; i<=x+N_CHUNKS; i++) {
-            for(int j=z-N_CHUNKS; j<=z+N_CHUNKS; j++) {
+        for(int i=x-N_CHUNKS,leni=x+N_CHUNKS; i<=leni; i++) {
+            for(int j=z-N_CHUNKS,lenj=z+N_CHUNKS; j<=lenj; j++) {
                 String idChunk = "chunk;"+i+":"+y+":"+j;
                 
                 ChunkStore cs = buscarChunk(idChunk);                
@@ -136,30 +136,41 @@ public class Voxit extends SimpleApplication {
     }
     
     private void ocultarChunks(int x, int y, int z) {
-        Object[] chunkArray = (new ArrayList(chunks)).toArray();
-        for(int i=0,len=chunkArray.length; i<len; i++) {
-            ChunkStore cs = (ChunkStore) chunkArray[i];
-            if(Math.abs(x - cs.coords[0]) > N_CHUNKS || Math.abs(z - cs.coords[2]) > N_CHUNKS) {
-                cs.setVisible(false, this);
-            } else {
-                cs.setVisible(true, this);
+        synchronized(chunks) {
+            Object[] chunkArray = (new ArrayList(chunks)).toArray();
+            for(int i=0,len=chunkArray.length; i<len; i++) {
+                ChunkStore cs = (ChunkStore) chunkArray[i];
+                int absX = Math.abs(x - cs.coords[0]);
+                int absZ = Math.abs(z - cs.coords[2]);
+
+                if(absX > N_CHUNKS*2 || absZ > N_CHUNKS*2) {
+                    chunks.remove(cs);
+                } else if(absX > N_CHUNKS || absZ > N_CHUNKS) {
+                    cs.setVisible(false, this);
+                } else {
+                    cs.setVisible(true, this);
+                }
             }
-        }
+        }        
     }
     
     private void guardarChunk(ChunkStore cs) {
-        chunks.add(cs);
+        synchronized(chunks) {
+            chunks.add(cs);
+        }
     }
     
     private ChunkStore buscarChunk(String idChunk) {
-        Object[] chunkArray = (new ArrayList(chunks)).toArray();
-        for(int i=0,len=chunkArray.length; i<len; i++) {
-            ChunkStore cs = (ChunkStore) chunkArray[i];
-            if(cs.idChunk.equals(idChunk)) {
-                return cs;
+        synchronized(chunks) {
+            Object[] chunkArray = (new ArrayList(chunks)).toArray();
+            for(int i=0,len=chunkArray.length; i<len; i++) {
+                ChunkStore cs = (ChunkStore) chunkArray[i];
+                if(cs.idChunk.equals(idChunk)) {
+                    return cs;
+                }
             }
-        }
-        return null;
+            return null;
+        }        
     }
 
     @Override
