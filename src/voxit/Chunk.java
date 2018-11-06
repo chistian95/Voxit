@@ -9,6 +9,7 @@ import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import jme3tools.optimize.GeometryBatchFactory;
 
 public class Chunk {
@@ -23,10 +24,19 @@ public class Chunk {
     
     private final List<MeshBuffer> bufferMeshes = new ArrayList();
     
-    Chunk(final int x, final int y, final int z, Voxit app) {
+    Chunk(final int x, final int y, final int z, String idChunk, final Voxit app) {
         this.coords = new int[] {x,y,z};
         
         generarChunk(app);          
+        spatBloques.setName(idChunk);
+        spatBloques.setCullHint(Spatial.CullHint.Always);
+        app.enqueue(new Callable<Spatial>() {
+            @Override
+            public Spatial call() throws Exception {  
+                app.getRootNode().attachChild(spatBloques);
+                return null;
+            } 
+        });
     }
     
     private void generarChunk(Voxit app) {        
@@ -37,7 +47,7 @@ public class Chunk {
         generarInfoChunk(app);
         generarGeomChunk(app.bloquesBase);
         optimizarChunk();
-        spatBloques.setLocalTranslation(x*ANCHO_CHUNK*ESCALA_BLOQUES*2, y*ANCHO_CHUNK*ESCALA_BLOQUES*2, z*ANCHO_CHUNK*ESCALA_BLOQUES*2);                    
+        spatBloques.setLocalTranslation(x*ANCHO_CHUNK*ESCALA_BLOQUES*2, y*ANCHO_CHUNK*ESCALA_BLOQUES*2, z*ANCHO_CHUNK*ESCALA_BLOQUES*2);        
     }
     
     private void generarInfoChunk(Voxit app) {
@@ -143,12 +153,12 @@ public class Chunk {
                         este = z+1<infoChunk[x][y].length && solidos.contains(infoChunk[x][y][z+1]) ? 0 : 1;
                         oeste = z-1>= 0 && solidos.contains(infoChunk[x][y][z-1]) ? 0 : 1;
                     } else {
-                        abajo = y-1>=0 && infoChunk[x][y-1][z] == 1 ? 0 : 1;
-                        arriba = y+1<infoChunk[x].length && infoChunk[x][y+1][z] == 1 ? 0 : 1;
-                        sur = x-1>=0 && infoChunk[x-1][y][z] == 1 ? 0 : 1;
-                        norte = x+1<infoChunk.length && infoChunk[x+1][y][z] == 1 ? 0 : 1;
-                        este = z+1<infoChunk[x][y].length && infoChunk[x][y][z+1] == 1 ? 0 : 1;
-                        oeste = z-1>= 0 && infoChunk[x][y][z-1] == 1 ? 0 : 1;
+                        abajo = y-1<0 || infoChunk[x][y-1][z] == 1 ? 0 : 1;
+                        arriba = y+1>=infoChunk[x].length || infoChunk[x][y+1][z] == 1 ? 0 : 1;
+                        sur = x-1<0 || infoChunk[x-1][y][z] == 1 ? 0 : 1;
+                        norte = x+1>=infoChunk.length || infoChunk[x+1][y][z] == 1 ? 0 : 1;
+                        este = z+1>=infoChunk[x][y].length || infoChunk[x][y][z+1] == 1 ? 0 : 1;
+                        oeste = z-1< 0 || infoChunk[x][y][z-1] == 1 ? 0 : 1;
                     }
                     
                     if(abajo+arriba+norte+sur+este+oeste == 0) {

@@ -7,16 +7,17 @@ import java.util.concurrent.Callable;
 
 public class ChunkStore {
     public String idChunk;
-    public Spatial spatBloques;
     private boolean generado;
     private boolean visible;
+    public int [] coords;
     
     public ChunkStore(int x, int y, int z, String idChunk, Voxit app) {
         this.generado = false;
         this.visible = false;
         this.idChunk = idChunk;        
-        Chunk chunk = new Chunk(x,y,z, app);
-        spatBloques = chunk.spatBloques;
+        this.coords = new int[]{x,y,z};
+        
+        new Chunk(x,y,z, idChunk, app);
         this.generado = true;
     }
     
@@ -36,11 +37,11 @@ public class ChunkStore {
             @Override
             public Spatial call() throws Exception {  
                 if(self.visible) {
-                    app.getRootNode().attachChild(spatBloques);
+                    app.getRootNode().getChild(idChunk).setCullHint(Spatial.CullHint.Inherit);
                 } else {
-                    app.getRootNode().detachChild(spatBloques);
+                    app.getRootNode().getChild(idChunk).setCullHint(Spatial.CullHint.Always);
                 }
-                return spatBloques;
+                return null;
             } 
         });
     }

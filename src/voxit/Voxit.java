@@ -17,19 +17,19 @@ import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class Voxit extends SimpleApplication {    
     public static final int SEED = (int) (Math.random() * 1000);
-    public static final int N_CHUNKS = 4;
+    public static final int N_CHUNKS = 5;
     
     public Geometry[] bloquesBase;
     public OpenSimplexNoise noise;
     public Thread hiloChunks;
     public Set<ChunkStore> chunks = new HashSet();
+    private int contUpdateChunk = 0;
     
     public static void main(String[] args) {
         Voxit app = new Voxit();
@@ -112,12 +112,6 @@ public class Voxit extends SimpleApplication {
                     int z = (int) Math.floor(posCam.z / Chunk.ESCALA_BLOQUES / Chunk.ANCHO_CHUNK * 0.5);
 
                     cargarChunks(x,y,z);
-
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(Voxit.class.getName()).log(Level.SEVERE, null, ex);
-                    }
                 }    
             }
         });
@@ -129,18 +123,28 @@ public class Voxit extends SimpleApplication {
         
         for(int i=x-N_CHUNKS; i<=x+N_CHUNKS; i++) {
             for(int j=z-N_CHUNKS; j<=z+N_CHUNKS; j++) {
-                String idChunk = i+":"+y+":"+j;
+                String idChunk = "chunk;"+i+":"+y+":"+j;
                 
                 ChunkStore cs = buscarChunk(idChunk);                
                 
                 if(cs == null) {
                     cs = new ChunkStore(i,y,j, idChunk, this);
                     guardarChunk(cs);
-                } else {
-                    cs.setVisible(true, this);
                 }
             }
         }        
+    }
+    
+    private void ocultarChunks(int x, int y, int z) {
+        Object[] chunkArray = (new ArrayList(chunks)).toArray();
+        for(int i=0,len=chunkArray.length; i<len; i++) {
+            ChunkStore cs = (ChunkStore) chunkArray[i];
+            if(Math.abs(x - cs.coords[0]) > N_CHUNKS || Math.abs(z - cs.coords[2]) > N_CHUNKS) {
+                cs.setVisible(false, this);
+            } else {
+                cs.setVisible(true, this);
+            }
+        }
     }
     
     private void guardarChunk(ChunkStore cs) {
@@ -148,7 +152,9 @@ public class Voxit extends SimpleApplication {
     }
     
     private ChunkStore buscarChunk(String idChunk) {
-        for(ChunkStore cs : chunks) {
+        Object[] chunkArray = (new ArrayList(chunks)).toArray();
+        for(int i=0,len=chunkArray.length; i<len; i++) {
+            ChunkStore cs = (ChunkStore) chunkArray[i];
             if(cs.idChunk.equals(idChunk)) {
                 return cs;
             }
@@ -158,6 +164,16 @@ public class Voxit extends SimpleApplication {
 
     @Override
     public void simpleUpdate(float tpf) {
+        contUpdateChunk++;
+        if(contUpdateChunk >= 10) {
+            contUpdateChunk = 0;
+            
+            Vector3f posCam = cam.getLocation();
+            int x = (int) Math.floor(posCam.x / Chunk.ESCALA_BLOQUES / Chunk.ANCHO_CHUNK * 0.5);
+            int y = (int) Math.floor(posCam.y / Chunk.ESCALA_BLOQUES / Chunk.ANCHO_CHUNK * 0.5);
+            int z = (int) Math.floor(posCam.z / Chunk.ESCALA_BLOQUES / Chunk.ANCHO_CHUNK * 0.5);
+            ocultarChunks(x,y,z);
+        }
     }
 
     @Override
